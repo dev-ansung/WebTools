@@ -14,6 +14,25 @@
         .logo-card:hover {
             transform: scale(1.05);
         }
+
+        @keyframes pulse-highlight {
+            0% {
+                background-color: white;
+            }
+
+            50% {
+                background-color: #dbeafe;
+            }
+
+            /* blue-100 */
+            100% {
+                background-color: white;
+            }
+        }
+
+        .sanitized-pulse {
+            animation: pulse-highlight 0.5s ease-out;
+        }
     </style>
 </head>
 
@@ -21,22 +40,22 @@
 
     <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md text-center">
         <h1 class="text-2xl font-bold text-gray-800 mb-2">Company Logo Finder</h1>
-        <p class="text-gray-500 mb-6 text-sm">Enter a domain (e.g. apple.com) to get the official logo.</p>
+        <p class="text-gray-500 mb-6 text-sm">Paste a URL or domain to get the official logo.</p>
 
         <div class="flex gap-2 mb-6">
-            <input type="text" id="domainInput" placeholder="tesla.com"
-                class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+            <input type="text" id="domainInput" placeholder="https://www.apple.com"
+                class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all">
             <button onclick="getLogo()"
-                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition">
+                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition active:scale-95">
                 Fetch
             </button>
         </div>
 
         <div id="resultContainer" class="hidden">
-            <div class="logo-card bg-gray-50 border border-gray-200 rounded-xl p-8 flex items-center justify-center">
+            <div
+                class="logo-card bg-gray-50 border border-gray-200 rounded-xl p-8 flex items-center justify-center min-h-[160px]">
                 <img id="logoImg" src="" alt="Company Logo" class="max-h-32 object-contain">
             </div>
-            <p id="domainLabel" class="mt-4 text-gray-400 text-xs italic"></p>
             <button onclick="downloadLogo()" class="mt-4 text-blue-600 text-sm font-semibold hover:underline">
                 Download Image
             </button>
@@ -47,26 +66,42 @@
 
     <script>
         function getLogo() {
-            const input = document.getElementById('domainInput').value.trim().toLowerCase();
+            const inputEl = document.getElementById('domainInput');
+
+            // 1. Sanitize & Normalize logic
+            let cleanDomain = inputEl.value
+                .trim()
+                .toLowerCase()
+                .replace(/^https?:\/\//, '') // Remove http/https
+                .replace(/^www\./, '')       // Remove www.
+                .split(/[/?#]/)[0];          // Remove paths, queries, or fragments
+
+            if (!cleanDomain) return;
+
+            // 2. Add .com if user just typed a single word
+            if (!cleanDomain.includes('.')) {
+                cleanDomain += '.com';
+            }
+
+            // 3. Update the UI input field so user sees the "sanitized" version
+            if (inputEl.value !== cleanDomain) {
+                inputEl.value = cleanDomain;
+                inputEl.classList.add('sanitized-pulse');
+                setTimeout(() => inputEl.classList.remove('sanitized-pulse'), 500);
+            }
+
             const logoImg = document.getElementById('logoImg');
             const resultContainer = document.getElementById('resultContainer');
             const errorMsg = document.getElementById('errorMsg');
-            const domainLabel = document.getElementById('domainLabel');
 
-            if (!input) return;
-
-            // Simple regex to ensure it looks like a domain
-            const domain = input.includes('.') ? input : `${input}.com`;
-
-            // Hunter.io Logo API - No Key Required!
-            const logoUrl = `https://logos.hunter.io/${domain}`;
+            // Hunter.io Logo API
+            const logoUrl = `https://logos.hunter.io/${cleanDomain}`;
 
             logoImg.src = logoUrl;
 
             logoImg.onload = () => {
                 resultContainer.classList.remove('hidden');
                 errorMsg.classList.add('hidden');
-                domainLabel.innerText = `Source: ${domain}`;
             };
 
             logoImg.onerror = () => {
@@ -79,11 +114,16 @@
             const img = document.getElementById('logoImg');
             const link = document.createElement('a');
             link.href = img.src;
-            link.download = 'company-logo.png';
+            link.download = `logo-${document.getElementById('domainInput').value}.png`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         }
+
+        // Allow "Enter" key to trigger search
+        document.getElementById('domainInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') getLogo();
+        });
     </script>
 </body>
 
