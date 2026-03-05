@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Base64 Image Scaler</title>
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --bg-color: #f4f4f9;
+            --text-main: #2d3748;
+            --border-color: #ccc;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            background: var(--bg-color);
+            color: var(--text-main);
+        }
+
+        .card {
+            width: 100%;
+            max-width: 600px;
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        #drop-zone {
+            height: 120px;
+            border: 2px dashed var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        #drop-zone.active {
+            border-color: var(--primary-color);
+            background: #ebf8ff;
+        }
+
+        .controls {
+            display: none;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+        .slider-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        input[type=range] { flex: 1; }
+
+        #output-container {
+            display: none;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        #preview {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            border: 1px solid #eee;
+            align-self: center;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+            font-family: monospace;
+            font-size: 12px;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            resize: vertical;
+        }
+
+        .btn {
+            padding: 12px;
+            cursor: pointer;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: opacity 0.2s;
+        }
+
+        .btn:hover { opacity: 0.9; }
+
+        .stats { font-size: 0.9rem; font-weight: 600; display: flex; justify-content: space-between; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2 style="margin-top: 0;">Image to Base64 Scaler</h2>
+        
+        <div id="drop-zone">Paste (Ctrl+V) or click to upload</div>
+        <input type="file" id="file-input" hidden accept="image/*">
+
+        <div class="controls" id="ui-controls">
+            <div class="slider-group">
+                <span>Target:</span>
+                <input type="range" id="size-slider" min="1" step="1">
+                <span id="slider-val">0</span> KB
+            </div>
+            <div style="font-size: 0.8rem; color: #718096;">
+                Original Size: <span id="max-size-label">0</span> KB
+            </div>
+        </div>
+
+        <div id="output-container">
+            <div class="stats">
+                <span>Current: <span id="size-tag" style="color: var(--primary-color);">0</span> KB</span>
+            </div>
+            <img id="preview" src="" alt="Preview">
+            <textarea id="base64-output" readonly placeholder="Base64 will appear here..."></textarea>
+            <button class="btn" id="copy-btn">Copy Base64 URL</button>
+        </div>
+    </div>
+
+    <script>
+        const App = {
+            currentImg: null,
+            elements: {
+                dropZone: document.getElementById('drop-zone'),
+                fileInput: document.getElementById('file-input'),
+                controls: document.getElementById('ui-controls'),
+                output: document.getElementById('output-container'),
+                slider: document.getElementById('size-slider'),
+                sliderVal: document.getElementById('slider-val'),
+                maxLabel: document.getElementById('max-size-label'),
+                sizeTag: document.getElementById('size-tag'),
+                preview: document.getElementById('preview'),
+                textarea: document.getElementById('base64-output'),
+                copyBtn: document.getElementById('copy-btn')
+            },
+
+            init() {
+                this.bindEvents();
+            },
+
+            bindEvents() {
+                // Drag and Drop / Paste
+                document.addEventListener('paste', e => this.handlePaste(e));
+                this.elements.dropZone.addEventListener('click', () => this.elements.fileInput.click());
+                this.elements.fileInput.addEventListener('change', e => this.handleFile(e));
+
+                // Slider
+                this.elements.slider.addEventListener('input', () => {
+                    this.elements.sliderVal.innerText = this.elements.slider.value;
+                    this.processImage();
+                });
+
+                // Copy
+                this.elements.copyBtn.addEventListener('click', () => this.copyToClipboard());
+            },
+
+            async handleFile(e) {
+                const file = e.target.files[0];
+                if (file) await this.loadImage(file);
+            },
+
+            async handlePaste(e) {
+                const item = Array.from(e.clipboardData.items).find(x => x.type.includes('image'));
+                if (item) await this.loadImage(item.getAsFile());
+            },
+
+            loadImage(file) {
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            this.currentImg = img;
+                            const kbSize = Math.floor(e.target.result.length / 1024);
+                            this.updateUISize(kbSize);
+                            this.processImage();
+                            resolve();
+                        };
+                        img.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                });
+            },
+
+            updateUISize(kb) {
+                this.elements.slider.max = kb;
+                this.elements.slider.value = Math.min(kb, 50);
+                this.elements.sliderVal.innerText = this.elements.slider.value;
+                this.elements.maxLabel.innerText = kb;
+                this.elements.controls.style.display = 'flex';
+                this.elements.output.style.display = 'flex';
+            },
+
+            processImage() {
+                if (!this.currentImg) return;
+
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const targetBytes = this.elements.slider.value * 1024;
+
+                let scale = 1.0;
+                let dataUrl = "";
+                let bytes = Infinity;
+
+                // Simple iterative search
+                while (bytes > targetBytes && scale > 0.01) {
+                    canvas.width = Math.max(1, this.currentImg.width * scale);
+                    canvas.height = Math.max(1, this.currentImg.height * scale);
+                    
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(this.currentImg, 0, 0, canvas.width, canvas.height);
+
+                    dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+                    bytes = dataUrl.length;
+                    scale -= 0.05;
+                }
+
+                this.elements.preview.src = dataUrl;
+                this.elements.textarea.value = dataUrl;
+                this.elements.sizeTag.innerText = (bytes / 1024).toFixed(2);
+            },
+
+            copyToClipboard() {
+                this.elements.textarea.select();
+                document.execCommand('copy');
+                const originalText = this.elements.copyBtn.innerText;
+                this.elements.copyBtn.innerText = "Copied!";
+                setTimeout(() => this.elements.copyBtn.innerText = originalText, 2000);
+            }
+        };
+
+        App.init();
+    </script>
+</body>
+</html>
