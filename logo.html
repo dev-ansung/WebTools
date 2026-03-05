@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instant Logo Fetcher</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .logo-card {
+            transition: transform 0.2s;
+        }
+
+        .logo-card:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-6">
+
+    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md text-center">
+        <h1 class="text-2xl font-bold text-gray-800 mb-2">Company Logo Finder</h1>
+        <p class="text-gray-500 mb-6 text-sm">Enter a domain (e.g. apple.com) to get the official logo.</p>
+
+        <div class="flex gap-2 mb-6">
+            <input type="text" id="domainInput" placeholder="tesla.com"
+                class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+            <button onclick="getLogo()"
+                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition">
+                Fetch
+            </button>
+        </div>
+
+        <div id="resultContainer" class="hidden">
+            <div class="logo-card bg-gray-50 border border-gray-200 rounded-xl p-8 flex items-center justify-center">
+                <img id="logoImg" src="" alt="Company Logo" class="max-h-32 object-contain">
+            </div>
+            <p id="domainLabel" class="mt-4 text-gray-400 text-xs italic"></p>
+            <button onclick="downloadLogo()" class="mt-4 text-blue-600 text-sm font-semibold hover:underline">
+                Download Image
+            </button>
+        </div>
+
+        <p id="errorMsg" class="hidden text-red-500 text-sm mt-4">Could not find a logo for that domain.</p>
+    </div>
+
+    <script>
+        function getLogo() {
+            const input = document.getElementById('domainInput').value.trim().toLowerCase();
+            const logoImg = document.getElementById('logoImg');
+            const resultContainer = document.getElementById('resultContainer');
+            const errorMsg = document.getElementById('errorMsg');
+            const domainLabel = document.getElementById('domainLabel');
+
+            if (!input) return;
+
+            // Simple regex to ensure it looks like a domain
+            const domain = input.includes('.') ? input : `${input}.com`;
+
+            // Hunter.io Logo API - No Key Required!
+            const logoUrl = `https://logos.hunter.io/${domain}`;
+
+            logoImg.src = logoUrl;
+
+            logoImg.onload = () => {
+                resultContainer.classList.remove('hidden');
+                errorMsg.classList.add('hidden');
+                domainLabel.innerText = `Source: ${domain}`;
+            };
+
+            logoImg.onerror = () => {
+                resultContainer.classList.add('hidden');
+                errorMsg.classList.remove('hidden');
+            };
+        }
+
+        function downloadLogo() {
+            const img = document.getElementById('logoImg');
+            const link = document.createElement('a');
+            link.href = img.src;
+            link.download = 'company-logo.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+
+</html>
