@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Color Picker — WebTools</title>
+  <script src="../shared/theme.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js"></script>
+  <script src="scripts/color_picker.js"></script>
+</head>
+<body class="bg-white min-h-screen flex flex-col items-center p-6 pt-16" x-data="colorPicker()">
+  <nav class="w-full max-w-page text-xs text-gray-400 mb-4">
+    <a href="../index.html" class="text-gray-600 hover:text-gray-900">WebTools</a>
+    <span class="mx-1">/</span>
+    <span class="text-gray-900">Color Picker</span>
+  </nav>
+
+  <div class="bg-white border border-gray-200 rounded-xl p-8 w-full max-w-page space-y-5">
+    <h1 class="text-base font-semibold text-gray-900">Color Picker</h1>
+
+    <!-- SL canvas -->
+    <div class="relative rounded-lg overflow-hidden cursor-crosshair select-none" style="height:200px"
+         x-ref="slBox"
+         @mousedown="startDrag('sl',$event)" @mousemove="onDrag($event)" @mouseup="stopDrag()" @mouseleave="stopDrag()"
+         @touchstart.prevent="startDrag('sl',$event.touches[0])" @touchmove.prevent="onDrag($event.touches[0])" @touchend="stopDrag()">
+      <div class="absolute inset-0" :style="'background:hsl('+h+',100%,50%)'"></div>
+      <div class="absolute inset-0" style="background:linear-gradient(to right,#fff,transparent)"></div>
+      <div class="absolute inset-0" style="background:linear-gradient(to top,#000,transparent)"></div>
+      <div class="absolute w-4 h-4 rounded-full border-2 border-white shadow pointer-events-none"
+           :style="'left:'+sx+'%;top:'+(100-sy)+'%;transform:translate(-50%,-50%)'"></div>
+    </div>
+
+    <!-- Hue slider -->
+    <div class="relative rounded-full cursor-pointer select-none" style="height:16px;background:linear-gradient(to right,hsl(0,100%,50%),hsl(60,100%,50%),hsl(120,100%,50%),hsl(180,100%,50%),hsl(240,100%,50%),hsl(300,100%,50%),hsl(360,100%,50%))"
+         x-ref="hueBar"
+         @mousedown="startDrag('h',$event)" @mousemove="onDrag($event)" @mouseup="stopDrag()"
+         @touchstart.prevent="startDrag('h',$event.touches[0])" @touchmove.prevent="onDrag($event.touches[0])" @touchend="stopDrag()">
+      <div class="absolute w-5 h-5 rounded-full border-2 border-white shadow pointer-events-none"
+           :style="'left:'+(h/360*100)+'%;top:50%;transform:translate(-50%,-50%);background:hsl('+h+',100%,50%)'"></div>
+    </div>
+
+    <!-- Nearest named color -->
+    <div class="border border-gray-200 rounded-lg overflow-hidden">
+      <div class="h-16 w-full transition-colors" :style="'background:'+nearest.name"></div>
+      <div class="p-4 space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="text-base font-medium text-gray-900" x-text="nearest.name"></span>
+          <button @click="copy(nearest.name)"
+                  class="border border-gray-200 rounded px-2 py-0.5 text-xs text-gray-500 hover:border-gray-400 transition-colors"
+                  x-text="copied ? 'Copied!' : 'Copy name'"></button>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 font-mono text-xs text-gray-500">
+          <div><span class="text-gray-300 text-[10px] uppercase tracking-widest">Hex </span><span x-text="nearest.hex"></span></div>
+          <div><span class="text-gray-300 text-[10px] uppercase tracking-widest">RGB </span><span x-text="nearest.rgbStr"></span></div>
+          <div><span class="text-gray-300 text-[10px] uppercase tracking-widest">HSL </span><span x-text="nearest.hslStr"></span></div>
+          <div><span class="text-gray-300 text-[10px] uppercase tracking-widest">HSV </span><span x-text="nearest.hsvStr"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nearby colors -->
+    <div>
+      <div class="text-xs uppercase tracking-widest text-gray-400 mb-2">Nearby named colors</div>
+      <div class="grid grid-cols-4 gap-2">
+        <template x-for="c in nearby" :key="c.name">
+          <button @click="jumpTo(c)" class="flex flex-col gap-1 p-1.5 rounded-lg border border-transparent hover:border-gray-200 transition-colors text-left">
+            <div class="w-full h-8 rounded border border-black/10" :style="'background:'+c.name"></div>
+            <div class="text-xs text-gray-500 leading-tight break-all w-full" x-text="c.name"></div>
+          </button>
+        </template>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

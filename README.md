@@ -51,7 +51,7 @@ Open `index.html` in any browser.
 
 ## Proposed tools
 
-- **Color Picker** — pick a color visually, copy as hex / rgb / hsl
+- ~~**Color Picker**~~ — done
 - **JSON Formatter** — paste raw JSON, format and validate it in-browser
 - **Word Counter** — count words, characters, sentences, and reading time
 - **QR Code Generator** — generate a QR code from any URL or text, download as PNG
