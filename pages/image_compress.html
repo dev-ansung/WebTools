@@ -4,18 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Image Compress — WebTools</title>
+  <script src="../shared/theme.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js"></script>
   <script src="scripts/image_compress.js"></script>
 </head>
-<body class="bg-white min-h-screen flex flex-col items-center justify-center p-6">
-  <nav class="w-full max-w-lg text-xs text-gray-400 mb-4">
+<body class="bg-white min-h-screen flex flex-col items-center p-6 pt-16">
+  <nav class="w-full max-w-page text-xs text-gray-400 mb-4">
     <a href="../index.html" class="text-gray-600 hover:text-gray-900">WebTools</a>
     <span class="mx-1">/</span>
     <span class="text-gray-900">Image Compress</span>
   </nav>
 
-  <div class="bg-white border border-gray-200 rounded-xl p-8 w-full max-w-lg" x-data="imageCompress()">
+  <div class="bg-white border border-gray-200 rounded-xl p-8 w-full max-w-page" x-data="imageCompress()">
     <h1 class="text-base font-semibold text-gray-900 mb-6">Image Compress</h1>
 
     <!-- Upload zone -->
@@ -29,7 +30,7 @@
     <div x-show="original" class="grid grid-cols-2 gap-3 mb-4">
       <div class="border border-gray-200 rounded-lg overflow-hidden">
         <div class="bg-gray-50 px-3 py-1.5 text-xs text-gray-400 border-b border-gray-200">Original</div>
-        <img :src="original" class="w-full object-contain max-h-40">
+        <img :src="original" class="w-full object-contain">
         <div class="bg-gray-50 px-3 py-1.5 text-xs text-gray-400 border-t border-gray-200">
           <div x-text="(originalSize / 1048576).toFixed(2) + ' MB'"></div>
           <div x-text="originalDims"></div>
@@ -37,7 +38,7 @@
       </div>
       <div class="border border-gray-200 rounded-lg overflow-hidden">
         <div class="bg-gray-50 px-3 py-1.5 text-xs text-gray-400 border-b border-gray-200">Compressed</div>
-        <img :src="compressed" class="w-full object-contain max-h-40">
+        <img :src="compressed" class="w-full object-contain">
         <div class="bg-gray-50 px-3 py-1.5 text-xs border-t border-gray-200" :class="compressedSmaller ? 'text-green-700' : 'text-gray-400'">
           <div x-text="(compressedSize / 1048576).toFixed(2) + ' MB'"></div>
           <div x-text="compressedDims"></div>

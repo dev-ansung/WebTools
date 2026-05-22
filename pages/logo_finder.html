@@ -4,17 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Logo Finder — WebTools</title>
+  <script src="../shared/theme.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js"></script>
 </head>
-<body class="bg-white min-h-screen flex flex-col items-center justify-center p-6">
-  <nav class="w-full max-w-lg text-xs text-gray-400 mb-4">
+<body class="bg-white min-h-screen flex flex-col items-center p-6 pt-16">
+  <nav class="w-full max-w-page text-xs text-gray-400 mb-4">
     <a href="../index.html" class="text-gray-600 hover:text-gray-900">WebTools</a>
     <span class="mx-1">/</span>
     <span class="text-gray-900">Logo Finder</span>
   </nav>
 
-  <div class="bg-white border border-gray-200 rounded-xl p-8 w-full max-w-lg"
+  <div class="bg-white border border-gray-200 rounded-xl p-8 w-full max-w-page"
        x-data="{
          query: '',
          logo: null,
