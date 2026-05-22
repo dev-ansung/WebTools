@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flip Text — WebTools</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js"></script>
+</head>
+<body class="bg-white min-h-screen flex flex-col items-center justify-center p-6">
+  <nav class="w-full max-w-lg text-xs text-gray-400 mb-4">
+    <a href="../index.html" class="text-gray-600 hover:text-gray-900">WebTools</a>
+    <span class="mx-1">/</span>
+    <span class="text-gray-900">Flip Text</span>
+  </nav>
+
+  <div class="bg-white border border-gray-200 rounded-xl p-8 w-full max-w-lg"
+       x-data="{
+         input: '',
+         copied: false,
+         get output() { return TextManipulation.flipString(this.input) },
+         async copy() {
+           if (!this.output) return
+           await navigator.clipboard.writeText(this.output)
+           this.copied = true
+           setTimeout(() => this.copied = false, 1500)
+         }
+       }">
+    <h1 class="text-base font-semibold text-gray-900 mb-6">Flip Text</h1>
+
+    <label class="block text-xs uppercase tracking-widest text-gray-400 mb-1">Input</label>
+    <textarea x-model="input" placeholder="Type something…"
+              class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-400 resize-y h-24"></textarea>
+
+    <label class="block text-xs uppercase tracking-widest text-gray-400 mb-1 mt-4">Output</label>
+    <div class="flex gap-2 items-start">
+      <textarea :value="output" readonly
+                class="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none resize-y h-24"></textarea>
+      <button @click="copy()" :class="copied ? 'text-green-700 border-green-700' : ''"
+              class="border border-gray-200 rounded px-2 py-0.5 text-xs text-gray-500 hover:border-gray-400 mt-1 transition-colors">
+        <span x-text="copied ? 'Copied!' : 'Copy'"></span>
+      </button>
+    </div>
+  </div>
+
+  <script src="scripts/text_manipulation.js"></script>
+</body>
+</html>
