@@ -15,7 +15,7 @@ function compress(img, { format, quality, scale }) {
   const mime = format === 'png' ? 'image/png' : format === 'webp' ? 'image/webp' : 'image/jpeg'
   const dataUrl = canvas.toDataURL(mime, quality / 100)
   const bytes = Math.round((dataUrl.length - dataUrl.indexOf(',') - 1) * 3 / 4)
-  return { dataUrl, bytes }
+  return { dataUrl, bytes, width: canvas.width, height: canvas.height }
 }
 
 function calcQuality(img, { format, maxBytes, scale }) {
@@ -44,6 +44,8 @@ function imageCompress() {
     scale: 100,
     originalSize: 0,
     compressedSize: 0,
+    originalDims: '',
+    compressedDims: '',
 
     get compressedSmaller() { return this.compressedSize < this.originalSize },
     get base64Bytes() { return this.compressed ? formatBytes(this.compressedSize) : '' },
@@ -54,6 +56,7 @@ function imageCompress() {
       this.imgEl = await loadImage(file)
       this.original = this.imgEl.src
       this.originalSize = file.size
+      this.originalDims = this.imgEl.naturalWidth + ' × ' + this.imgEl.naturalHeight
       this.quality = calcQuality(this.imgEl, { format: this.format, maxBytes: this.maxMB * 1024 * 1024, scale: this.scale })
       await this.process()
     },
@@ -64,15 +67,17 @@ function imageCompress() {
       this.imgEl = await loadImage(file)
       this.original = this.imgEl.src
       this.originalSize = file.size
+      this.originalDims = this.imgEl.naturalWidth + ' × ' + this.imgEl.naturalHeight
       this.quality = calcQuality(this.imgEl, { format: this.format, maxBytes: this.maxMB * 1024 * 1024, scale: this.scale })
       await this.process()
     },
 
     async process() {
       if (!this.imgEl) return
-      const { dataUrl, bytes } = compress(this.imgEl, { format: this.format, quality: this.quality, scale: this.scale })
+      const { dataUrl, bytes, width, height } = compress(this.imgEl, { format: this.format, quality: this.quality, scale: this.scale })
       this.compressed = dataUrl
       this.compressedSize = bytes
+      this.compressedDims = width + ' × ' + height
     },
 
     download() {

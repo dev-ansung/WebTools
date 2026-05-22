@@ -30,14 +30,20 @@
       <div class="border border-gray-200 rounded-lg overflow-hidden">
         <div class="bg-gray-50 px-3 py-2 text-xs text-gray-400 flex justify-between">
           <span>Original</span>
-          <span x-text="(originalSize / 1048576).toFixed(2) + ' MB'"></span>
+          <div class="text-right">
+            <div x-text="(originalSize / 1048576).toFixed(2) + ' MB'"></div>
+            <div x-text="originalDims"></div>
+          </div>
         </div>
         <img :src="original" class="w-full object-contain max-h-40">
       </div>
       <div class="border border-gray-200 rounded-lg overflow-hidden">
         <div class="bg-gray-50 px-3 py-2 text-xs text-gray-400 flex justify-between">
           <span>Compressed</span>
-          <span :class="compressedSmaller ? 'text-green-700' : ''" x-text="(compressedSize / 1048576).toFixed(2) + ' MB'"></span>
+          <div class="text-right" :class="compressedSmaller ? 'text-green-700' : ''">
+            <div x-text="(compressedSize / 1048576).toFixed(2) + ' MB'"></div>
+            <div x-text="compressedDims"></div>
+          </div>
         </div>
         <img :src="compressed" class="w-full object-contain max-h-40">
       </div>
